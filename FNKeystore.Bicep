@@ -1,39 +1,103 @@
-resource keyvault 'Microsoft.KeyVault/vaults@2022-11-01'
-name: 'FNKeyvault'
-  location: 'EastUS'
-  properties: {
-    sku: {
-      family: 'A'
-      name: 'standard'
-    }
-    tenantId: subscription().tenantId
+@description('FNKeyvault')
 
-    enableRbacAuthorization: false      // Using Access Policies model
-    accessPolicies: [
-      {
-        objectId: 'd89101d9-cf97-4b6c-9656-c6da457d8add'
-        tenantId: tenantId
-        permissions: {
-          secrets: [
-            'all'
-          ]
-          certificates: [
-            'all'
-          ]
-          keys: [
-            'all'
-          ]
-        }
-      }
-    ]
+param appName string
 
-    
-    enabledForDeployment: true
-    enabledForTemplateDeployment: true
 
-    enablePurgeProtection: true
-    enableSoftDelete: true
-    softDeleteRetentionInDays: 30
-    createMode: 'default'
-  }
+
+
+@description('FNKeyvalut1')
+
+@maxLength(15)
+
+param appNameShort string
+
+
+
+
+@description('West US')
+
+param location string
+
+
+
+
+@description('The environment the resources are being deployed to.')
+
+param env string
+
+
+
+
+@description('Name of the key vault')
+
+param vaultName string = 'RG-CTG-${appNameShort}-${env}'
+
+
+
+
+@description('SoftDelete data retention days')
+
+param softDeleteRetentionInDays int = env == 'prod' ? 90 : 30
+
+@description('Custom tags')
+
+param tags object = {}
+
+resource vault 'Microsoft.KeyVault/vaults@2022-07-01' = {
+
+name: vaultName
+location: location
+
+properties: {
+
+tenantId: tenant().tenantId
+
+sku: {
+
+family: 'A'
+
+name: 'standard'
+
+ }
+
+
+
+
+enabledForDeployment: false
+
+enabledForDiskEncryption: false
+
+enabledForTemplateDeployment: false
+
+enablePurgeProtection: true
+
+enableRbacAuthorization: true
+
+enableSoftDelete: true
+
+softDeleteRetentionInDays: softDeleteRetentionInDays
+
+networkAcls: {
+
+bypass: 'AzureServices'
+
+defaultAction: 'Deny'
+
+
+ }
+
+}
+
+tags: union(
+
+{
+
+Project: appName
+
+Environment: env
+
+},
+
+tags)
+
 }
